@@ -1,0 +1,216 @@
+---
+import { menu } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, tagNames } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+const tags = tagNames[lang];
+---
+
+<section class="section" id="menu">
+  <div class="wrap">
+    <div class="section__intro">
+      <p class="eyebrow">{copy.menuEyebrow}</p>
+      <h2>{copy.menuTitle}</h2>
+      <p>{copy.menuIntro}</p>
+    </div>
+
+    <div class="menu">
+      {menu.map((section) => (
+        <section class="menu__section">
+          <h3 class="menu__heading">{section.title[lang]}</h3>
+          {section.description && (
+            <p class="menu__blurb">{section.description[lang]}</p>
+          )}
+
+          <ul class="menu__list">
+            {section.items.map((item) => (
+              <li class="item">
+                <div class="item__head">
+                  <h4 class="item__name">
+                    {item.name}
+                    {item.subjectToAvailability && (
+                      <a class="item__marker" href="#menu-notes">
+                        ***
+                        <span class="visually-hidden">
+                          {copy.menuFootnoteAvailability}
+                        </span>
+                      </a>
+                    )}
+                  </h4>
+                  {/* The leader and price appear once either is available. */}
+                  {(item.price || item.marketPrice) && (
+                    <>
+                      <span class="item__dots" aria-hidden="true"></span>
+                      <span
+                        class:list={[
+                          'item__price',
+                          item.marketPrice && 'item__price--market',
+                        ]}
+                      >
+                        {item.marketPrice ? copy.menuMarketPrice : item.price}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p class="item__description">{item.description[lang]}</p>
+                {item.tags && item.tags.length > 0 && (
+                  <ul class="item__tags">
+                    {item.tags.map((tag) => (
+                      <li class="tag">{tags[tag]}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <footer class="menu__notes" id="menu-notes">
+      <p><span aria-hidden="true">***</span> {copy.menuFootnoteAvailability}</p>
+      <p>{copy.menuFootnoteRaw}</p>
+    </footer>
+  </div>
+</section>
+
+<style>
+  .menu {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  /*
+    Two balanced text columns rather than a 2×2 grid: the sections have very
+    different lengths, and a grid would leave a tall empty cell next to the
+    shortest one. `break-inside: avoid` keeps each section whole.
+  */
+  @media (min-width: 52rem) {
+    .menu {
+      display: block;
+      columns: 2;
+      column-gap: 4rem;
+    }
+
+    .menu__section {
+      break-inside: avoid;
+      margin-bottom: 3.5rem;
+    }
+  }
+
+  .menu__heading {
+    font-size: 1.375rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .menu__blurb {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    font-style: italic;
+    margin-bottom: 1.25rem;
+  }
+
+  .menu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* Name and price on one line, joined by a dotted leader that absorbs the
+     leftover space — the classic printed-menu look. */
+  .item__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .item__name {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .item__dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--line);
+    transform: translateY(-0.2em);
+  }
+
+  .item__price {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* "Market price" is words, not a figure — quieter and allowed to wrap. */
+  .item__price--market {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--ink-muted);
+    white-space: normal;
+    text-align: right;
+  }
+
+  .item__marker {
+    font-size: 0.75em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    vertical-align: 0.25em;
+    margin-left: 0.15em;
+  }
+
+  .item__marker:hover {
+    color: var(--accent);
+  }
+
+  .menu__notes {
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+  }
+
+  .menu__notes p {
+    margin: 0 0 0.35rem;
+  }
+
+  .item__description {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    margin: 0.25rem 0 0;
+  }
+
+  .item__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+  }
+
+  .tag {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+</style>

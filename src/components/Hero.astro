@@ -1,0 +1,75 @@
+---
+import { restaurant } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+---
+
+<section class="hero">
+  <div class="wrap hero__inner">
+    <p class="eyebrow">{restaurant.tagline[lang]}</p>
+    <h1>
+      {restaurant.name}
+      <span class="hero__sub">Asador Playero</span>
+    </h1>
+    <p class="hero__intro">{restaurant.intro[lang]}</p>
+
+    <div class="hero__actions">
+      <a class="button" href="#reservations">{copy.heroBook}</a>
+      <a class="button button--ghost" href="#menu">{copy.heroMenu}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    /* Swap in a real photo once one is available:
+       background: url('/images/hero.jpg') center / cover no-repeat; */
+    background:
+      radial-gradient(
+        ellipse at 20% 0%,
+        color-mix(in srgb, var(--accent) 14%, transparent),
+        transparent 60%
+      ),
+      var(--bg-inset);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero__inner {
+    padding-block: clamp(4rem, 12vw, 8rem);
+    max-width: 40rem;
+  }
+
+  .hero h1 {
+    letter-spacing: 0.04em;
+  }
+
+  .hero__sub {
+    display: block;
+    font-size: 0.3em;
+    font-family: var(--font-body);
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 0.9rem;
+  }
+
+  .hero__intro {
+    font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
+    color: var(--ink-muted);
+    margin-bottom: 2rem;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+</style>

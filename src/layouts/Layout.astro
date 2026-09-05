@@ -1,0 +1,135 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import LanguageChooser from '../components/LanguageChooser.astro';
+import {
+  restaurant,
+  openingHours,
+  formattedAddress,
+} from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, localeHome, LOCALES, SCHEMA_DAY } from '../i18n';
+import '../styles/global.css';
+
+interface Props {
+  lang: Locale;
+  title?: string;
+  description?: string;
+  /** The 404 page has no translated counterpart to advertise. */
+  showChooser?: boolean;
+}
+
+const { lang, title, description, showChooser = true } = Astro.props;
+const copy = t(lang);
+
+const pageTitle =
+  title ?? `${restaurant.fullName} — ${copy.metaTitleSuffix}`;
+const pageDescription = description ?? restaurant.intro[lang];
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// schema.org Restaurant markup so Google can surface hours, address and the
+// price range directly in search results.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: restaurant.fullName,
+  description: restaurant.intro[lang],
+  url: canonical.href,
+  servesCuisine: ['Seafood', 'Puerto Rican', 'Barbecue'],
+  priceRange: '$20–60',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: restaurant.address.street,
+    addressLocality: restaurant.address.locality,
+    addressRegion: restaurant.address.region,
+    postalCode: restaurant.address.postalCode,
+    addressCountry: 'PR',
+  },
+  sameAs: [restaurant.social.instagram, restaurant.social.facebook].filter(Boolean),
+  openingHoursSpecification: openingHours
+    .filter((entry) => entry.opens && entry.closes)
+    .map((entry) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: `https://schema.org/${SCHEMA_DAY[entry.day]}`,
+      opens: entry.opens,
+      closes: entry.closes,
+    })),
+  ...(restaurant.phone ? { telephone: restaurant.phone } : {}),
+  ...(restaurant.email ? { email: restaurant.email } : {}),
+};
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href={canonical.href} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+
+    {/* Tell search engines about both language versions. */}
+    {LOCALES.map((locale) => (
+      <link
+        rel="alternate"
+        hreflang={locale}
+        href={new URL(localeHome(locale), Astro.site).href}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL('/', Astro.site).href}
+    />
+
+    <meta property="og:type" content="restaurant" />
+    <meta property="og:site_name" content={restaurant.fullName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:locale" content={lang === 'es' ? 'es_PR' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="geo.placename" content={formattedAddress} />
+    <meta name="geo.region" content="PR" />
+
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{copy.skipToContent}</a>
+    <Header lang={lang} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    {showChooser && <LanguageChooser lang={lang} />}
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0.75rem 1.25rem;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    /* Off-screen until focused. */
+    transform: translateY(-120%);
+    transition: transform 0.15s ease;
+    z-index: 100;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+    color: #fff;
+  }
+</style>

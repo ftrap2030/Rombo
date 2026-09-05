@@ -1,0 +1,299 @@
+---
+import { restaurant } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+
+const isConfigured = Boolean(restaurant.reservationEndpoint);
+---
+
+<section class="section section--inset" id="reservations">
+  <div class="wrap reservations">
+    <div class="section__intro">
+      <p class="eyebrow">{copy.bookEyebrow}</p>
+      <h2>{copy.bookTitle}</h2>
+      <p>
+        {copy.bookIntro}{' '}
+        <a href={restaurant.social.instagram} rel="noopener noreferrer" target="_blank">
+          @romboasadorplayero
+        </a>
+      </p>
+    </div>
+
+    {!isConfigured && (
+      <p class="notice">
+        <strong>{copy.bookNotConfiguredTitle}</strong> {copy.bookNotConfiguredBody}
+      </p>
+    )}
+
+    <form
+      class="form"
+      method="POST"
+      action={restaurant.reservationEndpoint || undefined}
+      data-reservation-form
+      novalidate
+    >
+      {/* Tells the inbox which language the guest was browsing in. */}
+      <input type="hidden" name="lang" value={lang} />
+
+      <div class="form__grid">
+        <div class="field">
+          <label for="res-name">{copy.fieldName}</label>
+          <input
+            id="res-name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-email">{copy.fieldEmail}</label>
+          <input
+            id="res-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-phone">
+            {copy.fieldPhone} <span class="field__hint">{copy.fieldOptional}</span>
+          </label>
+          <input
+            id="res-phone"
+            name="phone"
+            type="tel"
+            autocomplete="tel"
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-guests">{copy.fieldGuests}</label>
+          <select id="res-guests" name="guests" required disabled={!isConfigured}>
+            {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
+              <option value={String(n)}>
+                {n === 8 ? copy.fieldGuestsMax : n}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="res-date">{copy.fieldDate}</label>
+          <input
+            id="res-date"
+            name="date"
+            type="date"
+            required
+            disabled={!isConfigured}
+            data-min-today
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-time">{copy.fieldTime}</label>
+          <input
+            id="res-time"
+            name="time"
+            type="time"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="res-notes">
+          {copy.fieldNotes} <span class="field__hint">{copy.fieldOptional}</span>
+        </label>
+        <textarea
+          id="res-notes"
+          name="notes"
+          rows="3"
+          placeholder={copy.fieldNotesPlaceholder}
+          disabled={!isConfigured}
+        ></textarea>
+      </div>
+
+      {/* Honeypot: hidden from people, irresistible to bots. */}
+      <div class="honeypot" aria-hidden="true">
+        <label for="res-company">{copy.fieldCompany}</label>
+        <input id="res-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button class="button" type="submit" disabled={!isConfigured}>
+        {copy.bookSubmit}
+      </button>
+
+      <p class="form__status" data-form-status role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script
+  is:inline
+  define:vars={{
+    sendingText: copy.bookSending,
+    successText: copy.bookSuccess,
+    serverErrorText: copy.bookErrorServer,
+    networkErrorText: copy.bookErrorNetwork,
+  }}
+>
+  const form = document.querySelector('[data-reservation-form]');
+  const status = document.querySelector('[data-form-status]');
+
+  // Stop guests picking a date in the past. Done client-side so the value is
+  // right for the visitor's timezone, not the build machine's.
+  const dateInput = document.querySelector('[data-min-today]');
+  if (dateInput) {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    dateInput.min = local.toISOString().slice(0, 10);
+  }
+
+  function setStatus(message, kind) {
+    if (!status) return;
+    status.textContent = message;
+    status.className = kind ? `form__status form__status--${kind}` : 'form__status';
+  }
+
+  if (form && form.action) {
+    form.addEventListener('submit', async (event) => {
+      // Let the browser show its own messages on invalid input, then bail.
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      // Only take over the submit once we know we can handle it; if this path
+      // throws, the form still has a working native action to fall back on.
+      event.preventDefault();
+
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
+      setStatus(sendingText, '');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+          form.reset();
+          setStatus(successText, 'success');
+        } else {
+          setStatus(serverErrorText, 'error');
+        }
+      } catch {
+        setStatus(networkErrorText, 'error');
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .reservations {
+    max-width: 44rem;
+  }
+
+  .notice {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    margin-bottom: 2rem;
+  }
+
+  .form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .field__hint {
+    font-weight: 400;
+    color: var(--ink-muted);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    font: inherit;
+    font-size: 0.9375rem;
+    color: var(--ink);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.7rem;
+    width: 100%;
+  }
+
+  .field textarea {
+    resize: vertical;
+  }
+
+  .field input:disabled,
+  .field select:disabled,
+  .field textarea:disabled {
+    background: var(--bg-inset);
+    color: var(--ink-muted);
+    cursor: not-allowed;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__status {
+    margin: 1rem 0 0;
+    font-size: 0.9375rem;
+    min-height: 1.5rem;
+  }
+
+  .form__status--success {
+    color: #1f6b3a;
+    font-weight: 600;
+  }
+
+  .form__status--error {
+    color: #a3271a;
+    font-weight: 600;
+  }
+</style>

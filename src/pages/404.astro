@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { restaurant } from '../data/restaurant';
+import { ui } from '../i18n';
+
+// A 404 can be reached from either language, and we have no way to know which
+// was intended, so it shows both. The chooser is suppressed here — sending
+// someone from a dead link straight into a language dialog is confusing.
+const es = ui.es;
+const en = ui.en;
+---
+
+<Layout
+  lang="es"
+  title={`404 — ${restaurant.fullName}`}
+  description={es.notFoundBody}
+  showChooser={false}
+>
+  <section class="section">
+    <div class="wrap notfound">
+      <p class="eyebrow">404</p>
+
+      <h1>{es.notFoundTitle}</h1>
+      <p class="notfound__body">{es.notFoundBody}</p>
+      <a class="button" href="/">{es.notFoundBack}</a>
+
+      <hr class="notfound__rule" />
+
+      <div lang="en">
+        <h2 class="notfound__alt-title">{en.notFoundTitle}</h2>
+        <p class="notfound__body">{en.notFoundBody}</p>
+        <a class="button button--ghost" href="/en/">{en.notFoundBack}</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .notfound {
+    max-width: 34rem;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+
+  .notfound__body {
+    color: var(--ink-muted);
+    font-size: 1.0625rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .notfound__rule {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin-block: 3rem;
+  }
+
+  .notfound__alt-title {
+    font-size: 1.5rem;
+  }
+</style>

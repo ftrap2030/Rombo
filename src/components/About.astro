@@ -1,0 +1,32 @@
+---
+import { restaurant } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+---
+
+<section class="section" id="about">
+  <div class="wrap about">
+    <p class="eyebrow">{copy.aboutEyebrow}</p>
+    <h2>{copy.aboutTitle}</h2>
+    <p class="about__body">{restaurant.about[lang]}</p>
+  </div>
+</section>
+
+<style>
+  .about {
+    max-width: 42rem;
+  }
+
+  .about__body {
+    font-size: 1.0625rem;
+    color: var(--ink-muted);
+    margin-bottom: 0;
+  }
+</style>

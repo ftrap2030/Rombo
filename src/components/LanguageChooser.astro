@@ -1,0 +1,170 @@
+---
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+---
+
+{/*
+  Hidden by default and only revealed by the inline script below when no
+  language has been chosen yet. Rendering it hidden (rather than injecting it
+  with JS) keeps the markup in the HTML for anyone who lands with a slow
+  connection, and means no layout shift when it does appear.
+*/}
+<div
+  class="chooser"
+  id="language-chooser"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="chooser-title"
+  hidden
+>
+  <div class="chooser__panel">
+    <p class="chooser__brand">ROMBO</p>
+    <h2 class="chooser__title" id="chooser-title">{copy.chooserTitle}</h2>
+    <p class="chooser__subtitle">{copy.chooserSubtitle}</p>
+
+    <div class="chooser__actions">
+      <button class="button" type="button" data-choose-lang="es">
+        {copy.chooserSpanish}
+      </button>
+      <button class="button button--ghost" type="button" data-choose-lang="en">
+        {copy.chooserEnglish}
+      </button>
+    </div>
+  </div>
+</div>
+
+{/*
+  Inline and render-blocking on purpose: a returning visitor whose stored
+  language differs from this page is redirected before anything paints, so they
+  never see the wrong language flash. `is:inline` keeps it out of the bundle so
+  it runs immediately rather than after module loading.
+*/}
+<script is:inline define:vars={{ pageLang: lang }}>
+  (function () {
+    var KEY = 'rombo:lang';
+    var stored = null;
+
+    try {
+      stored = window.localStorage.getItem(KEY);
+    } catch (error) {
+      // Private mode or blocked storage — fall through to showing the chooser.
+    }
+
+    function pathFor(lang) {
+      return lang === 'es' ? '/' : '/en/';
+    }
+
+    if (stored === 'es' || stored === 'en') {
+      if (stored !== pageLang) {
+        // Preserve whatever section they were linked to.
+        window.location.replace(pathFor(stored) + window.location.hash);
+      }
+      return;
+    }
+
+    // No preference yet: reveal the chooser once the DOM is ready.
+    function reveal() {
+      var chooser = document.getElementById('language-chooser');
+      if (!chooser) return;
+
+      chooser.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+
+      var buttons = chooser.querySelectorAll('[data-choose-lang]');
+      buttons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          var choice = button.getAttribute('data-choose-lang');
+
+          try {
+            window.localStorage.setItem(KEY, choice);
+          } catch (error) {
+            // Not fatal — they'll just be asked again next visit.
+          }
+
+          chooser.hidden = true;
+          document.documentElement.style.overflow = '';
+
+          if (choice !== pageLang) {
+            window.location.assign(pathFor(choice) + window.location.hash);
+          }
+        });
+      });
+
+      // Focus the first option so keyboard users land inside the dialog.
+      var first = chooser.querySelector('[data-choose-lang]');
+      if (first) first.focus();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', reveal);
+    } else {
+      reveal();
+    }
+  })();
+</script>
+
+<style>
+  .chooser {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--ink) 72%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .chooser[hidden] {
+    display: none;
+  }
+
+  .chooser__panel {
+    background: var(--bg-raised);
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 30%);
+    padding: clamp(2rem, 5vw, 3rem);
+    max-width: 30rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .chooser__brand {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin: 0 0 1rem;
+  }
+
+  .chooser__title {
+    font-size: 1.375rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .chooser__subtitle {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .chooser__actions {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 26rem) {
+    .chooser__actions {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

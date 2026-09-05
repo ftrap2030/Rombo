@@ -1,0 +1,248 @@
+---
+import {
+  restaurant,
+  openingHours,
+  hoursNote,
+  formattedAddress,
+} from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, dayNames, formatTime, DAY_BY_INDEX } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+const days = dayNames[lang];
+
+// Highlight today's row. This is evaluated at build time, so a site that is
+// rebuilt daily stays accurate; the highlight is decorative either way.
+const todayKey = DAY_BY_INDEX[new Date().getDay()];
+
+const socials = [
+  { href: restaurant.social.instagram, label: 'Instagram' },
+  { href: restaurant.social.facebook, label: 'Facebook' },
+].filter((social) => social.href);
+---
+
+<section class="section" id="visit">
+  <div class="wrap">
+    <div class="section__intro">
+      <p class="eyebrow">{copy.visitEyebrow}</p>
+      <h2>{copy.visitTitle}</h2>
+      <p>{copy.visitIntro}</p>
+    </div>
+
+    <div class="visit">
+      <div class="visit__details">
+        <h3>{copy.visitHours}</h3>
+        <table class="hours">
+          <caption class="visually-hidden">{copy.visitHoursCaption}</caption>
+          <tbody>
+            {openingHours.map((entry) => {
+              const isToday = entry.day === todayKey;
+              const closed = !entry.opens || !entry.closes;
+              return (
+                <tr class={isToday ? 'hours__row hours__row--today' : 'hours__row'}>
+                  <th scope="row">
+                    {days[entry.day]}
+                    {isToday && <span class="hours__badge">{copy.visitToday}</span>}
+                  </th>
+                  <td>
+                    {closed
+                      ? copy.visitClosed
+                      : `${formatTime(entry.opens!)} – ${formatTime(entry.closes!)}`}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p class="hours__note">{hoursNote[lang]}</p>
+
+        <h3 class="visit__subhead">{copy.visitAddress}</h3>
+        <address class="visit__address">
+          {formattedAddress}<br />
+          {restaurant.address.country}
+        </address>
+
+        {(restaurant.phone || restaurant.email) && (
+          <p class="visit__contact">
+            {restaurant.phone && (
+              <a href={`tel:${restaurant.phone.replace(/[^\d+]/g, '')}`}>
+                {restaurant.phone}
+              </a>
+            )}
+            {restaurant.phone && restaurant.email && (
+              <span aria-hidden="true"> · </span>
+            )}
+            {restaurant.email && (
+              <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
+            )}
+          </p>
+        )}
+
+        {socials.length > 0 && (
+          <p class="visit__contact">
+            <span class="visit__contact-label">{copy.visitFollow}:</span>{' '}
+            {socials.map((social, index) => (
+              <>
+                {index > 0 && <span aria-hidden="true"> · </span>}
+                <a href={social.href} rel="noopener noreferrer" target="_blank">
+                  {social.label}
+                </a>
+              </>
+            ))}
+          </p>
+        )}
+
+        <a
+          class="button button--ghost"
+          href={restaurant.mapLinkUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {copy.visitDirections}
+        </a>
+      </div>
+
+      <div class="visit__map">
+        {restaurant.mapEmbedUrl ? (
+          <iframe
+            src={restaurant.mapEmbedUrl}
+            title={`${restaurant.fullName} — ${copy.visitAddress}`}
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+          />
+        ) : (
+          <div class="visit__map-placeholder">
+            <p><strong>{copy.mapMissingTitle}</strong></p>
+            <p>{copy.mapMissingBody}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .visit {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 52rem) {
+    .visit {
+      grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+      gap: 3.5rem;
+    }
+  }
+
+  .visit__details h3 {
+    margin-bottom: 0.75rem;
+  }
+
+  .visit__subhead {
+    margin-top: 2rem;
+  }
+
+  .hours {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .hours__row th,
+  .hours__row td {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .hours__row td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+  }
+
+  .hours__row--today th,
+  .hours__row--today td {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .hours__badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 999px;
+    vertical-align: 0.1em;
+  }
+
+  .hours__note {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    margin: 0.75rem 0 0;
+  }
+
+  .visit__address {
+    font-style: normal;
+    color: var(--ink-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .visit__contact {
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .visit__contact-label {
+    color: var(--ink-muted);
+  }
+
+  .visit__details .button {
+    margin-top: 1rem;
+  }
+
+  .visit__map {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--bg-inset);
+  }
+
+  .visit__map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .visit__map-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+  }
+
+  .visit__map-placeholder p {
+    margin: 0;
+  }
+</style>

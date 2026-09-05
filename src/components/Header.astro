@@ -1,0 +1,295 @@
+---
+import { restaurant } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, localeHome } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+
+const links = [
+  { href: '#menu', label: copy.navMenu },
+  { href: '#gallery', label: copy.navGallery },
+  { href: '#visit', label: copy.navVisit },
+  { href: '#reservations', label: copy.navBook },
+];
+
+const otherLang: Locale = lang === 'es' ? 'en' : 'es';
+const home = localeHome(lang);
+---
+
+<header class="header">
+  <div class="wrap header__inner">
+    <a class="header__brand" href={home}>
+      {/*
+        Lifted from the printed menu, so it is only ~211px wide. It is used at
+        about half that, which keeps it sharp on high-density screens; the hero
+        wordmark stays as text because upscaling this would show.
+      */}
+      <img
+        class="header__logo"
+        src="/images/logo.png"
+        alt={restaurant.fullName}
+        width="211"
+        height="91"
+      />
+      <span class="header__tagline">{restaurant.tagline[lang]}</span>
+    </a>
+
+    <div class="header__right">
+      {/*
+        Switching language here is an explicit choice, so it also updates the
+        stored preference — otherwise the chooser script would bounce them
+        straight back to their old language.
+      */}
+      <a
+        class="header__lang"
+        href={localeHome(otherLang)}
+        hreflang={otherLang}
+        lang={otherLang}
+        data-set-lang={otherLang}
+        title={copy.switchToOther}
+      >
+        {copy.langNameOther}
+      </a>
+
+      <button
+        class="header__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav"
+        data-nav-toggle
+      >
+        <span class="visually-hidden">{copy.navToggle}</span>
+        <span class="header__bars" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <nav class="header__nav" id="site-nav" aria-label={copy.navAriaLabel}>
+      <ul>
+        {links.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const header = document.querySelector<HTMLElement>('.header');
+
+  if (toggle && header) {
+    toggle.addEventListener('click', () => {
+      const open = header.classList.toggle('header--open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    // Close after tapping a link, otherwise the panel covers the target.
+    header.querySelectorAll('.header__nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        header.classList.remove('header--open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // Remember an explicit language switch so the chooser script doesn't
+  // redirect the visitor back to their previously stored language.
+  document.querySelectorAll<HTMLAnchorElement>('[data-set-lang]').forEach((link) => {
+    link.addEventListener('click', () => {
+      try {
+        window.localStorage.setItem('rombo:lang', link.dataset.setLang!);
+      } catch {
+        // Storage blocked — the navigation still works, it just isn't sticky.
+      }
+    });
+  });
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.5rem;
+  }
+
+  .header__brand {
+    display: flex;
+    flex-direction: column;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .header__logo {
+    width: 105px;
+    height: auto;
+  }
+
+  .header__tagline {
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 0.3rem;
+  }
+
+  .header__right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    order: 3;
+  }
+
+  .header__lang {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    white-space: nowrap;
+  }
+
+  .header__lang:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .header__nav ul {
+    display: flex;
+    gap: 1.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .header__nav a {
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding-block: 0.5rem;
+    border-bottom: 2px solid transparent;
+  }
+
+  .header__nav a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .header__toggle {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  /* Three-line hamburger drawn from one element plus its pseudo-elements. */
+  .header__bars,
+  .header__bars::before,
+  .header__bars::after {
+    display: block;
+    width: 1.125rem;
+    height: 2px;
+    background: var(--ink);
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+
+  .header__bars::before,
+  .header__bars::after {
+    content: '';
+    position: relative;
+  }
+
+  .header__bars::before {
+    top: -6px;
+  }
+
+  .header__bars::after {
+    top: 4px;
+  }
+
+  @media (min-width: 46.01rem) {
+    /* Nav sits between the brand and the language switch on wide screens. */
+    .header__nav {
+      order: 2;
+      margin-left: auto;
+      margin-right: 1.5rem;
+    }
+  }
+
+  @media (max-width: 46rem) {
+    .header__toggle {
+      display: flex;
+    }
+
+    .header__nav {
+      display: none;
+      position: absolute;
+      inset-inline: 0;
+      top: 100%;
+      background: var(--bg-raised);
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .header--open .header__nav {
+      display: block;
+    }
+
+    .header__nav ul {
+      flex-direction: column;
+      gap: 0;
+      padding: 0.5rem 1.25rem 1.25rem;
+    }
+
+    .header__nav li + li {
+      border-top: 1px solid var(--line);
+    }
+
+    .header__nav a {
+      display: block;
+      padding: 0.9rem 0;
+      border-bottom: none;
+    }
+
+    /* Hamburger morphs into a close icon while the panel is open. */
+    .header--open .header__bars {
+      background: transparent;
+    }
+
+    .header--open .header__bars::before {
+      top: -2px;
+      transform: rotate(45deg);
+    }
+
+    .header--open .header__bars::after {
+      top: -4px;
+      transform: rotate(-45deg);
+    }
+  }
+</style>
