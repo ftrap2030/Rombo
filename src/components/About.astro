@@ -1,0 +1,23 @@
+---
+import { restaurant } from '../data/restaurant';
+---
+
+<section class="section" id="about">
+  <div class="wrap about">
+    <p class="eyebrow">Our story</p>
+    <h2>About {restaurant.name}</h2>
+    <p class="about__body">{restaurant.about}</p>
+  </div>
+</section>
+
+<style>
+  .about {
+    max-width: 42rem;
+  }
+
+  .about__body {
+    font-size: 1.0625rem;
+    color: var(--ink-muted);
+    margin-bottom: 0;
+  }
+</style>

@@ -1,0 +1,297 @@
+---
+import { restaurant } from '../data/restaurant';
+
+const isConfigured = Boolean(restaurant.reservationEndpoint);
+const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
+---
+
+<section class="section section--inset" id="reservations">
+  <div class="wrap reservations">
+    <div class="section__intro">
+      <p class="eyebrow">Reservations</p>
+      <h2>Book a table</h2>
+      <p>
+        Send us a request and we'll confirm by email or phone. For same-day
+        bookings or parties over six, please call us on{' '}
+        <a href={phoneHref}>{restaurant.phone}</a>.
+      </p>
+    </div>
+
+    {!isConfigured && (
+      <p class="notice">
+        <strong>The form isn't connected yet.</strong> Create a free form at{' '}
+        <a href="https://formspree.io" rel="noopener noreferrer" target="_blank">
+          formspree.io
+        </a>{' '}
+        and paste the endpoint into <code>reservationEndpoint</code> in{' '}
+        <code>src/data/restaurant.ts</code>. Until then, guests can book by
+        phone or email.
+      </p>
+    )}
+
+    <form
+      class="form"
+      method="POST"
+      action={restaurant.reservationEndpoint || undefined}
+      data-reservation-form
+      novalidate
+    >
+      <div class="form__grid">
+        <div class="field">
+          <label for="res-name">Name</label>
+          <input
+            id="res-name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-email">Email</label>
+          <input
+            id="res-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-phone">Phone <span class="field__hint">(optional)</span></label>
+          <input
+            id="res-phone"
+            name="phone"
+            type="tel"
+            autocomplete="tel"
+            disabled={!isConfigured}
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-guests">Guests</label>
+          <select id="res-guests" name="guests" required disabled={!isConfigured}>
+            {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
+              <option value={String(n)}>{n === 8 ? '8 or more' : n}</option>
+            ))}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="res-date">Date</label>
+          <input
+            id="res-date"
+            name="date"
+            type="date"
+            required
+            disabled={!isConfigured}
+            data-min-today
+          />
+        </div>
+
+        <div class="field">
+          <label for="res-time">Time</label>
+          <input
+            id="res-time"
+            name="time"
+            type="time"
+            required
+            disabled={!isConfigured}
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="res-notes">
+          Anything we should know? <span class="field__hint">(optional)</span>
+        </label>
+        <textarea
+          id="res-notes"
+          name="notes"
+          rows="3"
+          placeholder="Allergies, high chair, celebrating something…"
+          disabled={!isConfigured}
+        ></textarea>
+      </div>
+
+      {/* Honeypot: hidden from people, irresistible to bots. */}
+      <div class="honeypot" aria-hidden="true">
+        <label for="res-company">Company</label>
+        <input id="res-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button class="button" type="submit" disabled={!isConfigured}>
+        Request a table
+      </button>
+
+      <p class="form__status" data-form-status role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-reservation-form]');
+  const status = document.querySelector<HTMLParagraphElement>('[data-form-status]');
+
+  // Stop guests picking a date in the past. Done client-side so the value is
+  // right for the visitor's timezone, not the build machine's.
+  const dateInput = document.querySelector<HTMLInputElement>('[data-min-today]');
+  if (dateInput) {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    dateInput.min = local.toISOString().slice(0, 10);
+  }
+
+  function setStatus(message: string, kind: 'success' | 'error' | '') {
+    if (!status) return;
+    status.textContent = message;
+    status.className = kind ? `form__status form__status--${kind}` : 'form__status';
+  }
+
+  if (form && form.action) {
+    form.addEventListener('submit', async (event) => {
+      // Let the browser show its own messages on invalid input, then bail.
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      // Only take over the submit once we know we can handle it; if the fetch
+      // path throws, the form still has a working native action to fall back on.
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
+      setStatus('Sending your request…', '');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+          form.reset();
+          setStatus(
+            'Thank you — your request is in. We’ll confirm shortly.',
+            'success',
+          );
+        } else {
+          setStatus(
+            'Something went wrong sending that. Please call us instead.',
+            'error',
+          );
+        }
+      } catch {
+        setStatus(
+          'We couldn’t reach the booking service. Please call us instead.',
+          'error',
+        );
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .reservations {
+    max-width: 44rem;
+  }
+
+  .notice {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+    margin-bottom: 2rem;
+  }
+
+  .notice code {
+    background: var(--bg-inset);
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.9em;
+  }
+
+  .form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .field__hint {
+    font-weight: 400;
+    color: var(--ink-muted);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    font: inherit;
+    font-size: 0.9375rem;
+    color: var(--ink);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.7rem;
+    width: 100%;
+  }
+
+  .field textarea {
+    resize: vertical;
+  }
+
+  .field input:disabled,
+  .field select:disabled,
+  .field textarea:disabled {
+    background: var(--bg-inset);
+    color: var(--ink-muted);
+    cursor: not-allowed;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__status {
+    margin: 1rem 0 0;
+    font-size: 0.9375rem;
+    min-height: 1.5rem;
+  }
+
+  .form__status--success {
+    color: #1f6b3a;
+    font-weight: 600;
+  }
+
+  .form__status--error {
+    color: #a3271a;
+    font-weight: 600;
+  }
+</style>

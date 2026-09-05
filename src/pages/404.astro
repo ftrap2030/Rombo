@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { restaurant } from '../data/restaurant';
+---
+
+<Layout title={`Page not found — ${restaurant.name}`}>
+  <section class="section">
+    <div class="wrap notfound">
+      <p class="eyebrow">404</p>
+      <h1>We couldn't find that page</h1>
+      <p class="notfound__body">
+        The link may be out of date. Head back to the homepage for the menu,
+        opening hours and bookings.
+      </p>
+      <a class="button" href="/">Back to the homepage</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .notfound {
+    max-width: 34rem;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+
+  .notfound__body {
+    color: var(--ink-muted);
+    font-size: 1.0625rem;
+    margin-bottom: 2rem;
+  }
+</style>

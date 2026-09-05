@@ -1,0 +1,64 @@
+---
+import { gallery } from '../data/restaurant';
+---
+
+<section class="section section--inset" id="gallery">
+  <div class="wrap">
+    <div class="section__intro">
+      <p class="eyebrow">A look inside</p>
+      <h2>Gallery</h2>
+      <p>The room, the plates and the people who make them.</p>
+    </div>
+
+    <ul class="gallery">
+      {gallery.map((photo, index) => (
+        <li class="gallery__item">
+          {/* The first two are likely above the fold on wide screens. */}
+          <img
+            src={photo.src}
+            alt={photo.alt}
+            width="800"
+            height="600"
+            loading={index < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .gallery__item {
+    overflow: hidden;
+    border-radius: var(--radius);
+    background: var(--bg-raised);
+    box-shadow: var(--shadow);
+  }
+
+  .gallery__item img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .gallery__item:hover img {
+    transform: scale(1.04);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery__item:hover img {
+      transform: none;
+    }
+  }
+</style>

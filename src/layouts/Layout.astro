@@ -1,0 +1,107 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import {
+  restaurant,
+  openingHours,
+  formattedAddress,
+} from '../data/restaurant';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = `${restaurant.name} — ${restaurant.tagline}`,
+  description = restaurant.intro,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// schema.org Restaurant markup so Google can show hours, address and phone
+// directly in search results. Only days with hours are included.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: restaurant.name,
+  description: restaurant.intro,
+  url: canonical.href,
+  telephone: restaurant.phone,
+  email: restaurant.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: restaurant.address.street,
+    addressLocality: restaurant.address.locality,
+    addressRegion: restaurant.address.region,
+    postalCode: restaurant.address.postalCode,
+    addressCountry: restaurant.address.country,
+  },
+  openingHoursSpecification: openingHours
+    .filter((entry) => entry.opens && entry.closes)
+    .map((entry) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: `https://schema.org/${entry.day}`,
+      opens: entry.opens,
+      closes: entry.closes,
+    })),
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href={canonical.href} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="restaurant" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:locale" content="en" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="geo.placename" content={formattedAddress} />
+
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0.75rem 1.25rem;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    /* Off-screen until focused. */
+    transform: translateY(-120%);
+    transition: transform 0.15s ease;
+    z-index: 100;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+    color: #fff;
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import { restaurant, formattedAddress } from '../data/restaurant';
+
+const year = new Date().getFullYear();
+const socials = [
+  { href: restaurant.social.facebook, label: 'Facebook' },
+  { href: restaurant.social.instagram, label: 'Instagram' },
+].filter((social) => social.href);
+---
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div>
+      <p class="footer__brand">{restaurant.name}</p>
+      <p class="footer__line">{formattedAddress}</p>
+    </div>
+
+    <div>
+      <p class="footer__line">
+        <a href={`tel:${restaurant.phone.replace(/\s+/g, '')}`}>
+          {restaurant.phone}
+        </a>
+      </p>
+      <p class="footer__line">
+        <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
+      </p>
+    </div>
+
+    {socials.length > 0 && (
+      <nav aria-label="Social media">
+        <ul class="footer__social">
+          {socials.map((social) => (
+            <li>
+              <a href={social.href} rel="noopener noreferrer" target="_blank">
+                {social.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </div>
+
+  <div class="wrap">
+    <p class="footer__legal">© {year} {restaurant.name}. All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--ink);
+    color: #cfc7bd;
+    padding-block: 3rem 2rem;
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgb(255 255 255 / 12%);
+  }
+
+  .footer__brand {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer__line {
+    margin: 0 0 0.35rem;
+    font-size: 0.9375rem;
+  }
+
+  .footer a {
+    color: #cfc7bd;
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .footer__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9375rem;
+  }
+
+  .footer__legal {
+    margin: 1.5rem 0 0;
+    font-size: 0.8125rem;
+    color: #9a9188;
+  }
+</style>

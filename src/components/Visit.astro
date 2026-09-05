@@ -1,0 +1,223 @@
+---
+import {
+  restaurant,
+  openingHours,
+  formattedAddress,
+} from '../data/restaurant';
+
+/** Turn "17:00" into "5:00 pm" for display. */
+function formatTime(time: string): string {
+  const [hourPart, minutePart] = time.split(':');
+  const hour = Number(hourPart);
+  const suffix = hour >= 12 ? 'pm' : 'am';
+  // 0 and 12 both display as 12 (midnight / noon).
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${displayHour}:${minutePart} ${suffix}`;
+}
+
+// Highlight today's row. `toLocaleDateString` with an explicit weekday gives us
+// the same day names used in the data file.
+const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+---
+
+<section class="section" id="visit">
+  <div class="wrap">
+    <div class="section__intro">
+      <p class="eyebrow">Find us</p>
+      <h2>Visit</h2>
+      <p>
+        We're a short walk from the centre. Walk-ins are welcome at the counter;
+        for a table, book ahead below.
+      </p>
+    </div>
+
+    <div class="visit">
+      <div class="visit__details">
+        <h3>Opening hours</h3>
+        <table class="hours">
+          <caption class="visually-hidden">Opening hours by day</caption>
+          <tbody>
+            {openingHours.map((entry) => {
+              const isToday = entry.day === today;
+              const closed = !entry.opens || !entry.closes;
+              return (
+                <tr class={isToday ? 'hours__row hours__row--today' : 'hours__row'}>
+                  <th scope="row">
+                    {entry.day}
+                    {isToday && <span class="hours__badge">Today</span>}
+                  </th>
+                  <td>
+                    {entry.note
+                      ? entry.note
+                      : closed
+                        ? 'Closed'
+                        : `${formatTime(entry.opens!)} – ${formatTime(entry.closes!)}`}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <h3 class="visit__subhead">Address</h3>
+        <address class="visit__address">
+          {formattedAddress}<br />
+          {restaurant.address.country}
+        </address>
+
+        <p class="visit__contact">
+          <a href={`tel:${restaurant.phone.replace(/\s+/g, '')}`}>
+            {restaurant.phone}
+          </a>
+          <span aria-hidden="true"> · </span>
+          <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
+        </p>
+
+        <a
+          class="button button--ghost"
+          href={restaurant.mapLinkUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Get directions
+        </a>
+      </div>
+
+      <div class="visit__map">
+        {restaurant.mapEmbedUrl ? (
+          <iframe
+            src={restaurant.mapEmbedUrl}
+            title={`Map showing the location of ${restaurant.name}`}
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+          />
+        ) : (
+          <div class="visit__map-placeholder">
+            <p>
+              <strong>Map not set up yet.</strong>
+            </p>
+            <p>
+              Add a Google Maps embed URL to <code>mapEmbedUrl</code> in{' '}
+              <code>src/data/restaurant.ts</code> to show the map here.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .visit {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 52rem) {
+    .visit {
+      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+      gap: 3.5rem;
+    }
+  }
+
+  .visit__details h3 {
+    margin-bottom: 0.75rem;
+  }
+
+  .visit__subhead {
+    margin-top: 2rem;
+  }
+
+  .hours {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .hours__row th,
+  .hours__row td {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-weight: 400;
+  }
+
+  .hours__row td {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+  }
+
+  .hours__row--today th,
+  .hours__row--today td {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .hours__badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 999px;
+    vertical-align: 0.1em;
+  }
+
+  .visit__address {
+    font-style: normal;
+    color: var(--ink-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .visit__contact {
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .visit__map {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--bg-inset);
+  }
+
+  .visit__map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .visit__map-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+  }
+
+  .visit__map-placeholder p {
+    margin: 0;
+  }
+
+  .visit__map-placeholder code {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+    font-size: 0.85em;
+  }
+</style>

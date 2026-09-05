@@ -1,0 +1,138 @@
+---
+import { menu } from '../data/restaurant';
+---
+
+<section class="section" id="menu">
+  <div class="wrap">
+    <div class="section__intro">
+      <p class="eyebrow">What we're cooking</p>
+      <h2>Menu</h2>
+      <p>
+        The menu shifts with the seasons, so a dish or two may change between
+        your visit and this page. Tell us about allergies when you order and
+        we'll work around them.
+      </p>
+    </div>
+
+    <div class="menu">
+      {menu.map((section) => (
+        <section class="menu__section">
+          <h3 class="menu__heading">{section.title}</h3>
+          {section.description && (
+            <p class="menu__blurb">{section.description}</p>
+          )}
+
+          <ul class="menu__list">
+            {section.items.map((item) => (
+              <li class="item">
+                <div class="item__head">
+                  <h4 class="item__name">{item.name}</h4>
+                  <span class="item__dots" aria-hidden="true"></span>
+                  <span class="item__price">{item.price}</span>
+                </div>
+                <p class="item__description">{item.description}</p>
+                {item.tags && item.tags.length > 0 && (
+                  <ul class="item__tags">
+                    {item.tags.map((tag) => (
+                      <li class="tag">{tag}</li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .menu {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  @media (min-width: 52rem) {
+    .menu {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 4rem;
+    }
+  }
+
+  .menu__heading {
+    font-size: 1.375rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .menu__blurb {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    font-style: italic;
+    margin-bottom: 1.25rem;
+  }
+
+  .menu__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* Name and price on one line, joined by a dotted leader that absorbs the
+     leftover space — the classic printed-menu look. */
+  .item__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .item__name {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .item__dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--line);
+    transform: translateY(-0.2em);
+  }
+
+  .item__price {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .item__description {
+    color: var(--ink-muted);
+    font-size: 0.9375rem;
+    margin: 0.25rem 0 0;
+  }
+
+  .item__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+  }
+
+  .tag {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+</style>
