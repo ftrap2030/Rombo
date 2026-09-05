@@ -9,12 +9,11 @@ a reservation request form on one page per language.
 
 ## Before this goes live
 
-Four things still need real values. Each one degrades gracefully until then —
+A few things still need real values. Each degrades gracefully until then —
 nothing is broken, and no invented information is published.
 
 | What | Where | Status |
 | ---- | ----- | ------ |
-| **Menu prices** | `menu` in `src/data/restaurant.ts` | Dish names are real; every `price` is empty, so no price renders. **No prices were invented.** |
 | **Phone number** | `restaurant.phone` | Empty. Two different numbers appear in online listings and neither was confirmed, so none is published. |
 | **Email** | `restaurant.email` | Empty, same reason. |
 | **Map** | `restaurant.mapEmbedUrl` | Empty — the map area shows a setup note. |
@@ -28,14 +27,20 @@ note; the form enables itself.
 
 ### What *is* real
 
-Taken from the Google Business listing and the verified Instagram profile:
-
+- **The full menu**, transcribed from the printed menu: all 19 items across
+  Aperitivos, Pastelillos and Principales, with the printed prices. Spanish
+  descriptions are as printed; the English ones are translations of those.
+  Chillo frito carries `marketPrice` instead of a figure, and the four dishes
+  marked `***` on the printed menu carry `subjectToAvailability`, footnoted at
+  the bottom of the section alongside the raw-protein notice.
 - Name, address (112A Calle 15, Dorado, PR 00646), price range ($20–60)
 - Opening hours: closed Mon–Wed; Thu & Fri 3–11 pm; Sat & Sun 1–11 pm; kitchen
   closes 10 pm, bar 11 pm
 - Instagram and Facebook links
-- Dish names (ceviche de dorado, tacos al pastor, pork belly, chillo entero,
-  carne frita con tostones, …) — descriptions are written, prices are not
+
+The accent colour (`--accent` in `src/styles/global.css`) is set to the red of
+the ROMBO wordmark. The logo itself is not in the repo — the header uses styled
+text. Drop a real logo file into `public/` if you'd rather use the mark.
 
 ## Running it
 
@@ -80,14 +85,18 @@ To add a menu item, add an entry to the relevant section in `menu`:
 
 ```ts
 {
-  name: 'Tacos de dorado',                       // dish name, same both languages
+  name: 'Tacos al pastor',                  // as printed; same in both languages
   description: { es: 'Descripción…', en: 'Description…' },
-  price: '$18',                                  // empty string hides the price
-  tags: ['glutenFree'],                          // optional badges
+  price: '$14',                             // empty string hides the price
+  marketPrice: true,                        // optional: shows "Precio del mercado"
+  subjectToAvailability: true,              // optional: prints the *** marker
+  tags: ['glutenFree'],                     // optional badges
 }
 ```
 
 Tag keys are defined in `src/i18n/types.ts` and translated in `src/i18n/ui.ts`.
+No dish currently uses them — they're there for when you want to flag
+vegetarian, gluten-free and similar.
 
 For hours, use 24-hour `"HH:MM"` strings; both `opens` and `closes` set to
 `null` means closed that day. Today's row is highlighted automatically.

@@ -10,14 +10,18 @@
 import type { DayKey, TagKey, Translated } from '../i18n/types';
 
 export interface MenuItem {
-  /** Dish name. Kept in Spanish in both languages — these are the real names. */
+  /** Dish name exactly as printed on the menu; identical in both languages. */
   name: string;
   description: Translated;
   /**
-   * Display string including the currency symbol, e.g. "$18".
-   * Leave empty to hide the price for that item.
+   * Display string including the currency symbol, e.g. "$20" or "2 x $15".
+   * Leave empty to hide the price — or set `marketPrice` instead.
    */
   price: string;
+  /** Renders a localised "market price" in place of a figure. */
+  marketPrice?: boolean;
+  /** Prints the menu's *** marker, footnoted as "subject to availability". */
+  subjectToAvailability?: boolean;
   tags?: TagKey[];
 }
 
@@ -67,14 +71,15 @@ export const restaurant = {
   about: {
     es:
       'ROMBO es un asador playero: fuego, pesca local y una barra que no se ' +
-      'toma nada demasiado en serio. El menú cambia con lo que entra del mar ' +
-      'cada día, así que espera una lista corta y alguna que otra sorpresa. ' +
-      'Aceptamos walk-ins y también puedes reservar.',
+      'toma nada demasiado en serio. Trabajamos con atún y dorado del país, ' +
+      'chillo fresco y carnes ahumadas en casa, así que el menú se mueve con ' +
+      'lo que entra cada día. Aceptamos walk-ins y también puedes reservar.',
     en:
       'ROMBO is a beachside asador: live fire, local seafood, and a bar that ' +
-      'refuses to take itself too seriously. The menu moves with whatever ' +
-      'comes in off the water each day, so expect a short list and the odd ' +
-      'surprise. Walk-ins are welcome, and you can also book ahead.',
+      'refuses to take itself too seriously. We work with local tuna and ' +
+      'mahi-mahi, fresh snapper and meats smoked in house, so the menu moves ' +
+      'with whatever comes in each day. Walk-ins are welcome, and you can ' +
+      'also book ahead.',
   } satisfies Translated,
 
   address: {
@@ -141,151 +146,204 @@ export const hoursNote: Translated = {
 };
 
 // -----------------------------------------------------------------------------
-// MENU — dish names below are real (confirmed from listings and reviews), but
-// PRICES ARE NOT SET. Add the real prices in `price`, and add or remove dishes
-// to match the current menu. An empty `price` simply renders no price.
+// MENU — transcribed from the printed menu. Prices and Spanish descriptions are
+// exactly as printed; the English descriptions are translations of those.
+//
+// Dishes marked *** on the printed menu are "sujeto a disponibilidad" and carry
+// `subjectToAvailability: true` here.
 // -----------------------------------------------------------------------------
 
 export const menu: MenuSection[] = [
   {
-    title: { es: 'Aperitivos', en: 'To start' },
-    description: {
-      es: 'Para picar y compartir.',
-      en: 'Small plates, made to share.',
-    },
+    title: { es: 'Aperitivos', en: 'Starters' },
     items: [
       {
-        name: 'Ceviche de chillo fresco',
+        name: 'Crema de viandas',
         description: {
-          es: 'Chillo del día, leche de tigre, cebolla morada, cilantro.',
-          en: 'Day-boat snapper, leche de tigre, red onion, cilantro.',
+          es: 'Crema de yautía, malanga, calabaza y pico de gallo.',
+          en: 'Yautía, malanga and calabaza cream soup with pico de gallo.',
         },
-        price: '',
-        tags: ['raw', 'glutenFree'],
+        price: '$8',
       },
       {
         name: 'Ceviche de dorado',
         description: {
-          es: 'Dorado local curado en cítricos, ají y maíz tostado.',
-          en: 'Local mahi cured in citrus, chilli and toasted corn.',
+          es: 'Ceviche de dorado fresco con tostones.',
+          en: 'Fresh mahi-mahi ceviche with tostones.',
         },
-        price: '',
-        tags: ['raw', 'glutenFree'],
+        price: '$20',
       },
       {
-        name: 'Ensalada de mariscos',
+        name: 'Beer batter fish tacos',
         description: {
-          es: 'Mariscos marinados, cítricos y aceite de oliva.',
-          en: 'Marinated seafood, citrus and olive oil.',
+          es: 'Tacos de dorado fresco en un empanado de cerveza y especias.',
+          en: 'Fresh mahi-mahi in a beer-and-spice batter.',
         },
-        price: '',
-        tags: ['glutenFree'],
+        price: '2 x $15',
       },
       {
-        name: 'Empanadillas de pesca',
+        name: 'Tuna tartar',
         description: {
-          es: 'Rellenas con la pesca del día.',
-          en: 'Turnovers filled with the day’s catch.',
+          es: 'Tartar de atún de aleta amarilla del país.',
+          en: 'Local yellowfin tuna tartare.',
         },
-        price: '',
-      },
-    ],
-  },
-  {
-    title: { es: 'Del asador', en: 'From the grill' },
-    description: {
-      es: 'Todo sobre fuego vivo.',
-      en: 'Everything over live fire.',
-    },
-    items: [
-      {
-        name: 'Filete de dorado',
-        description: {
-          es: 'A la parrilla, con guarnición del día.',
-          en: 'Grilled, with the side of the day.',
-        },
-        price: '',
-        tags: ['glutenFree'],
+        price: '$24',
+        subjectToAvailability: true,
       },
       {
-        name: 'Chillo entero',
+        name: 'Tacos de brisket',
         description: {
-          es: 'Chillo fresco al fuego, según disponibilidad.',
-          en: 'Whole fresh snapper on the fire, subject to the catch.',
+          es:
+            'Carne de res premium cocida en su propio jugo, cebollas ' +
+            'encurtidas y cilantro.',
+          en:
+            'Premium beef cooked in its own juices, pickled onions and ' +
+            'cilantro.',
         },
-        price: '',
-        tags: ['glutenFree'],
-      },
-      {
-        name: 'Pincho de tiburón',
-        description: {
-          es: 'Marinado y asado a la brasa.',
-          en: 'Marinated and flame-grilled skewer.',
-        },
-        price: '',
-      },
-      {
-        name: 'Pork belly',
-        description: {
-          es: 'Sobre escabeche de gandules.',
-          en: 'Over a pigeon pea escabeche.',
-        },
-        price: '',
-      },
-      {
-        name: 'Carne ahumada',
-        description: {
-          es: 'Ahumada en casa, a fuego lento.',
-          en: 'Smoked in house, low and slow.',
-        },
-        price: '',
-      },
-      {
-        name: 'Carne frita con tostones',
-        description: {
-          es: 'Clásico de la casa, con tostones.',
-          en: 'A house classic, served with tostones.',
-        },
-        price: '',
-      },
-    ],
-  },
-  {
-    title: { es: 'Tacos', en: 'Tacos' },
-    items: [
-      {
-        name: 'Tacos de dorado',
-        description: {
-          es: 'Dorado local en batter de cerveza, repollo y salsa de la casa.',
-          en: 'Beer-battered local mahi, cabbage and house sauce.',
-        },
-        price: '',
+        price: '$14',
       },
       {
         name: 'Tacos al pastor',
         description: {
-          es: 'Cerdo al pastor, piña y cilantro.',
-          en: 'Al pastor pork, pineapple and cilantro.',
+          es: 'Elaborados con la receta auténtica de Cuernavaca, México.',
+          en: 'Made with the authentic recipe from Cuernavaca, Mexico.',
         },
-        price: '',
+        price: '$14',
+      },
+      {
+        name: 'Camarones al cajún',
+        description: {
+          es:
+            'Camarones al estilo cajún acompañados de la salsa de la casa y ' +
+            'tostones.',
+          en: 'Cajun-style shrimp with house sauce and tostones.',
+        },
+        price: '$22',
       },
     ],
   },
   {
-    title: { es: 'Barra', en: 'Bar' },
+    title: { es: 'Pastelillos', en: 'Pastelillos' },
     description: {
-      es: 'Coctelería de autor, ron local y mezcal.',
-      en: 'Craft cocktails, local rum and mezcal.',
+      es: 'Fritos al momento.',
+      en: 'Fried to order.',
     },
     items: [
       {
-        name: 'Coctelería de autor',
+        name: 'Langosta',
         description: {
-          es: 'Pregunta por la carta de la barra — cambia con frecuencia.',
-          en: 'Ask for the bar list — it changes often.',
+          es: 'Pastelillo relleno de langosta.',
+          en: 'Lobster pastelillo.',
+        },
+        price: '$6',
+      },
+      {
+        name: 'Chapín',
+        description: {
+          es: 'Pastelillo relleno de chapín.',
+          en: 'Trunkfish pastelillo.',
+        },
+        price: '$4',
+      },
+      {
+        name: 'Dorado',
+        description: {
+          es: 'Pastelillo relleno de dorado.',
+          en: 'Mahi-mahi pastelillo.',
+        },
+        price: '$4',
+      },
+      {
+        name: 'Combinado',
+        description: {
+          es: 'Carne ahumada y longaniza.',
+          en: 'Smoked meat and longaniza.',
+        },
+        price: '$4',
+      },
+      {
+        name: 'Arepa de coco',
+        description: {
+          es: 'Arepa de coco frita.',
+          en: 'Fried coconut arepa.',
+        },
+        price: '$2',
+      },
+    ],
+  },
+  {
+    title: { es: 'Principales', en: 'Mains' },
+    items: [
+      {
+        name: 'Por encima de los gandules',
+        description: {
+          es:
+            'Pork belly o filete de dorado por encima de un escabeche de ' +
+            'gandules del patio.',
+          en:
+            'Pork belly or mahi-mahi fillet over a pigeon pea escabeche from ' +
+            'the garden.',
+        },
+        price: '$20',
+      },
+      {
+        name: 'Filete de atún',
+        description: {
+          es:
+            'Filete de atún aleta amarilla del país sobre salteado de viandas ' +
+            'y aceite de cilantro.',
+          en:
+            'Local yellowfin tuna fillet over sautéed root vegetables and ' +
+            'cilantro oil.',
+        },
+        price: '$32',
+        subjectToAvailability: true,
+      },
+      {
+        name: 'Chillo frito',
+        description: {
+          es: 'Chillo frito con ensalada verde y tostones.',
+          en: 'Fried whole snapper with green salad and tostones.',
         },
         price: '',
-        tags: ['signature'],
+        marketPrice: true,
+        subjectToAvailability: true,
+      },
+      {
+        name: 'Churrasco',
+        description: {
+          es: 'Churrasco con ensalada verde y acompañante.',
+          en: 'Skirt steak with green salad and a side.',
+        },
+        price: '$32',
+        subjectToAvailability: true,
+      },
+      {
+        name: 'Carne ahumada',
+        description: {
+          es:
+            'Media libra de carne ahumada premium en la salsa de la casa y ' +
+            'tostones.',
+          en:
+            'Half a pound of premium smoked meat in house sauce, with tostones.',
+        },
+        price: '$15',
+      },
+      {
+        name: 'Carne frita',
+        description: {
+          es: 'Media libra de cerdo premium en cebollas salteadas con tostones.',
+          en: 'Half a pound of premium pork with sautéed onions and tostones.',
+        },
+        price: '$15',
+      },
+      {
+        name: 'ROMBO burger',
+        description: {
+          es: '5 oz de carne de cerdo ahumada y carne de res premium con papitas fritas.',
+          en: '5 oz of smoked pork and premium beef, served with fries.',
+        },
+        price: '$12',
       },
     ],
   },

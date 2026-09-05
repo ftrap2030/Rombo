@@ -39,6 +39,11 @@ const es = {
     'El menú cambia con la pesca del día, así que algún plato puede variar ' +
     'entre tu visita y esta página. Avísanos de cualquier alergia y lo ' +
     'ajustamos.',
+  menuMarketPrice: 'Precio del mercado',
+  menuFootnoteAvailability: 'Sujeto a disponibilidad.',
+  menuFootnoteRaw:
+    'Consumir proteínas crudas aumenta el riesgo de enfermedades ' +
+    'transmitidas por los alimentos.',
 
   galleryEyebrow: 'Por dentro',
   galleryTitle: 'Galería',
@@ -135,6 +140,10 @@ const en: Ui = {
     'The menu follows the day’s catch, so a dish or two may change between ' +
     'your visit and this page. Tell us about any allergies and we’ll work ' +
     'around them.',
+  menuMarketPrice: 'Market price',
+  menuFootnoteAvailability: 'Subject to availability.',
+  menuFootnoteRaw:
+    'Consuming raw proteins increases the risk of foodborne illness.',
 
   galleryEyebrow: 'A look inside',
   galleryTitle: 'Gallery',

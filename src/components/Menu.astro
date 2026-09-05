@@ -32,12 +32,29 @@ const tags = tagNames[lang];
             {section.items.map((item) => (
               <li class="item">
                 <div class="item__head">
-                  <h4 class="item__name">{item.name}</h4>
-                  {/* The dotted leader and price only appear once a price is set. */}
-                  {item.price && (
+                  <h4 class="item__name">
+                    {item.name}
+                    {item.subjectToAvailability && (
+                      <a class="item__marker" href="#menu-notes">
+                        ***
+                        <span class="visually-hidden">
+                          {copy.menuFootnoteAvailability}
+                        </span>
+                      </a>
+                    )}
+                  </h4>
+                  {/* The leader and price appear once either is available. */}
+                  {(item.price || item.marketPrice) && (
                     <>
                       <span class="item__dots" aria-hidden="true"></span>
-                      <span class="item__price">{item.price}</span>
+                      <span
+                        class:list={[
+                          'item__price',
+                          item.marketPrice && 'item__price--market',
+                        ]}
+                      >
+                        {item.marketPrice ? copy.menuMarketPrice : item.price}
+                      </span>
                     </>
                   )}
                 </div>
@@ -55,6 +72,11 @@ const tags = tagNames[lang];
         </section>
       ))}
     </div>
+
+    <footer class="menu__notes" id="menu-notes">
+      <p><span aria-hidden="true">***</span> {copy.menuFootnoteAvailability}</p>
+      <p>{copy.menuFootnoteRaw}</p>
+    </footer>
   </div>
 </section>
 
@@ -64,10 +86,21 @@ const tags = tagNames[lang];
     gap: clamp(2.5rem, 5vw, 3.5rem);
   }
 
+  /*
+    Two balanced text columns rather than a 2×2 grid: the sections have very
+    different lengths, and a grid would leave a tall empty cell next to the
+    shortest one. `break-inside: avoid` keeps each section whole.
+  */
   @media (min-width: 52rem) {
     .menu {
-      grid-template-columns: repeat(2, 1fr);
+      display: block;
+      columns: 2;
       column-gap: 4rem;
+    }
+
+    .menu__section {
+      break-inside: avoid;
+      margin-bottom: 3.5rem;
     }
   }
 
@@ -118,6 +151,40 @@ const tags = tagNames[lang];
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+
+  /* "Market price" is words, not a figure — quieter and allowed to wrap. */
+  .item__price--market {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--ink-muted);
+    white-space: normal;
+    text-align: right;
+  }
+
+  .item__marker {
+    font-size: 0.75em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    vertical-align: 0.25em;
+    margin-left: 0.15em;
+  }
+
+  .item__marker:hover {
+    color: var(--accent);
+  }
+
+  .menu__notes {
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+  }
+
+  .menu__notes p {
+    margin: 0 0 0.35rem;
   }
 
   .item__description {

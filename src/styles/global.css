@@ -8,8 +8,10 @@
   --bg-inset: #f3ede4;
   --ink: #24201c;
   --ink-muted: #6a625a;
-  --accent: #8c3a2b;
-  --accent-hover: #6f2c20;
+  /* Matches the red of the ROMBO wordmark. Checked against --bg for contrast:
+     5.5:1, which clears WCAG AA for body text as well as headings. */
+  --accent: #c0272d;
+  --accent-hover: #961d22;
   --line: #e3dbd0;
 
   --font-display: 'Georgia', 'Times New Roman', serif;
