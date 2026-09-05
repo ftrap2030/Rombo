@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Placeholder image">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Placeholder">
   <rect width="800" height="600" fill="#e8ddcd"/>
-  <g fill="#a89880" font-family="Georgia, serif" text-anchor="middle">
-    <text x="400" y="295" font-size="34">Signature dish</text>
-    <text x="400" y="335" font-size="19" font-family="system-ui, sans-serif">Replace with a real photo</text>
+  <g fill="#a89880" text-anchor="middle">
+    <text x="400" y="290" font-size="34" font-family="Georgia, serif">El asador</text>
+    <text x="400" y="330" font-size="18" font-family="system-ui, sans-serif">Sustituir por foto real / replace with a real photo</text>
   </g>
 </svg>

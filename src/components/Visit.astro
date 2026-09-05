@@ -2,76 +2,100 @@
 import {
   restaurant,
   openingHours,
+  hoursNote,
   formattedAddress,
 } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, dayNames, formatTime, DAY_BY_INDEX } from '../i18n';
 
-/** Turn "17:00" into "5:00 pm" for display. */
-function formatTime(time: string): string {
-  const [hourPart, minutePart] = time.split(':');
-  const hour = Number(hourPart);
-  const suffix = hour >= 12 ? 'pm' : 'am';
-  // 0 and 12 both display as 12 (midnight / noon).
-  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-  return `${displayHour}:${minutePart} ${suffix}`;
+interface Props {
+  lang: Locale;
 }
 
-// Highlight today's row. `toLocaleDateString` with an explicit weekday gives us
-// the same day names used in the data file.
-const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+const { lang } = Astro.props;
+const copy = t(lang);
+const days = dayNames[lang];
+
+// Highlight today's row. This is evaluated at build time, so a site that is
+// rebuilt daily stays accurate; the highlight is decorative either way.
+const todayKey = DAY_BY_INDEX[new Date().getDay()];
+
+const socials = [
+  { href: restaurant.social.instagram, label: 'Instagram' },
+  { href: restaurant.social.facebook, label: 'Facebook' },
+].filter((social) => social.href);
 ---
 
 <section class="section" id="visit">
   <div class="wrap">
     <div class="section__intro">
-      <p class="eyebrow">Find us</p>
-      <h2>Visit</h2>
-      <p>
-        We're a short walk from the centre. Walk-ins are welcome at the counter;
-        for a table, book ahead below.
-      </p>
+      <p class="eyebrow">{copy.visitEyebrow}</p>
+      <h2>{copy.visitTitle}</h2>
+      <p>{copy.visitIntro}</p>
     </div>
 
     <div class="visit">
       <div class="visit__details">
-        <h3>Opening hours</h3>
+        <h3>{copy.visitHours}</h3>
         <table class="hours">
-          <caption class="visually-hidden">Opening hours by day</caption>
+          <caption class="visually-hidden">{copy.visitHoursCaption}</caption>
           <tbody>
             {openingHours.map((entry) => {
-              const isToday = entry.day === today;
+              const isToday = entry.day === todayKey;
               const closed = !entry.opens || !entry.closes;
               return (
                 <tr class={isToday ? 'hours__row hours__row--today' : 'hours__row'}>
                   <th scope="row">
-                    {entry.day}
-                    {isToday && <span class="hours__badge">Today</span>}
+                    {days[entry.day]}
+                    {isToday && <span class="hours__badge">{copy.visitToday}</span>}
                   </th>
                   <td>
-                    {entry.note
-                      ? entry.note
-                      : closed
-                        ? 'Closed'
-                        : `${formatTime(entry.opens!)} – ${formatTime(entry.closes!)}`}
+                    {closed
+                      ? copy.visitClosed
+                      : `${formatTime(entry.opens!)} – ${formatTime(entry.closes!)}`}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+        <p class="hours__note">{hoursNote[lang]}</p>
 
-        <h3 class="visit__subhead">Address</h3>
+        <h3 class="visit__subhead">{copy.visitAddress}</h3>
         <address class="visit__address">
           {formattedAddress}<br />
           {restaurant.address.country}
         </address>
 
-        <p class="visit__contact">
-          <a href={`tel:${restaurant.phone.replace(/\s+/g, '')}`}>
-            {restaurant.phone}
-          </a>
-          <span aria-hidden="true"> · </span>
-          <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
-        </p>
+        {(restaurant.phone || restaurant.email) && (
+          <p class="visit__contact">
+            {restaurant.phone && (
+              <a href={`tel:${restaurant.phone.replace(/[^\d+]/g, '')}`}>
+                {restaurant.phone}
+              </a>
+            )}
+            {restaurant.phone && restaurant.email && (
+              <span aria-hidden="true"> · </span>
+            )}
+            {restaurant.email && (
+              <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
+            )}
+          </p>
+        )}
+
+        {socials.length > 0 && (
+          <p class="visit__contact">
+            <span class="visit__contact-label">{copy.visitFollow}:</span>{' '}
+            {socials.map((social, index) => (
+              <>
+                {index > 0 && <span aria-hidden="true"> · </span>}
+                <a href={social.href} rel="noopener noreferrer" target="_blank">
+                  {social.label}
+                </a>
+              </>
+            ))}
+          </p>
+        )}
 
         <a
           class="button button--ghost"
@@ -79,7 +103,7 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
           rel="noopener noreferrer"
           target="_blank"
         >
-          Get directions
+          {copy.visitDirections}
         </a>
       </div>
 
@@ -87,20 +111,15 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
         {restaurant.mapEmbedUrl ? (
           <iframe
             src={restaurant.mapEmbedUrl}
-            title={`Map showing the location of ${restaurant.name}`}
+            title={`${restaurant.fullName} — ${copy.visitAddress}`}
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
             allowfullscreen
           />
         ) : (
           <div class="visit__map-placeholder">
-            <p>
-              <strong>Map not set up yet.</strong>
-            </p>
-            <p>
-              Add a Google Maps embed URL to <code>mapEmbedUrl</code> in{' '}
-              <code>src/data/restaurant.ts</code> to show the map here.
-            </p>
+            <p><strong>{copy.mapMissingTitle}</strong></p>
+            <p>{copy.mapMissingBody}</p>
           </div>
         )}
       </div>
@@ -117,7 +136,7 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   @media (min-width: 52rem) {
     .visit {
-      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
       gap: 3.5rem;
     }
   }
@@ -170,6 +189,12 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     vertical-align: 0.1em;
   }
 
+  .hours__note {
+    font-size: 0.8125rem;
+    color: var(--ink-muted);
+    margin: 0.75rem 0 0;
+  }
+
   .visit__address {
     font-style: normal;
     color: var(--ink-muted);
@@ -178,7 +203,15 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   .visit__contact {
     font-size: 0.9375rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .visit__contact-label {
+    color: var(--ink-muted);
+  }
+
+  .visit__details .button {
+    margin-top: 1rem;
   }
 
   .visit__map {
@@ -202,7 +235,7 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     padding: 2rem;
     text-align: center;
     color: var(--ink-muted);
@@ -211,13 +244,5 @@ const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   .visit__map-placeholder p {
     margin: 0;
-  }
-
-  .visit__map-placeholder code {
-    background: var(--bg-raised);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 0.05rem 0.3rem;
-    font-size: 0.85em;
   }
 </style>

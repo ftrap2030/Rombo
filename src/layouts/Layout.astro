@@ -1,72 +1,99 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import LanguageChooser from '../components/LanguageChooser.astro';
 import {
   restaurant,
   openingHours,
   formattedAddress,
 } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, localeHome, LOCALES, SCHEMA_DAY } from '../i18n';
 import '../styles/global.css';
 
 interface Props {
+  lang: Locale;
   title?: string;
   description?: string;
+  /** The 404 page has no translated counterpart to advertise. */
+  showChooser?: boolean;
 }
 
-const {
-  title = `${restaurant.name} — ${restaurant.tagline}`,
-  description = restaurant.intro,
-} = Astro.props;
+const { lang, title, description, showChooser = true } = Astro.props;
+const copy = t(lang);
+
+const pageTitle =
+  title ?? `${restaurant.fullName} — ${copy.metaTitleSuffix}`;
+const pageDescription = description ?? restaurant.intro[lang];
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
-// schema.org Restaurant markup so Google can show hours, address and phone
-// directly in search results. Only days with hours are included.
+// schema.org Restaurant markup so Google can surface hours, address and the
+// price range directly in search results.
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
-  name: restaurant.name,
-  description: restaurant.intro,
+  name: restaurant.fullName,
+  description: restaurant.intro[lang],
   url: canonical.href,
-  telephone: restaurant.phone,
-  email: restaurant.email,
+  servesCuisine: ['Seafood', 'Puerto Rican', 'Barbecue'],
+  priceRange: '$20–60',
   address: {
     '@type': 'PostalAddress',
     streetAddress: restaurant.address.street,
     addressLocality: restaurant.address.locality,
     addressRegion: restaurant.address.region,
     postalCode: restaurant.address.postalCode,
-    addressCountry: restaurant.address.country,
+    addressCountry: 'PR',
   },
+  sameAs: [restaurant.social.instagram, restaurant.social.facebook].filter(Boolean),
   openingHoursSpecification: openingHours
     .filter((entry) => entry.opens && entry.closes)
     .map((entry) => ({
       '@type': 'OpeningHoursSpecification',
-      dayOfWeek: `https://schema.org/${entry.day}`,
+      dayOfWeek: `https://schema.org/${SCHEMA_DAY[entry.day]}`,
       opens: entry.opens,
       closes: entry.closes,
     })),
+  ...(restaurant.phone ? { telephone: restaurant.phone } : {}),
+  ...(restaurant.email ? { email: restaurant.email } : {}),
 };
 ---
 
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical.href} />
 
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+
+    {/* Tell search engines about both language versions. */}
+    {LOCALES.map((locale) => (
+      <link
+        rel="alternate"
+        hreflang={locale}
+        href={new URL(localeHome(locale), Astro.site).href}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL('/', Astro.site).href}
+    />
 
     <meta property="og:type" content="restaurant" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={restaurant.fullName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
     <meta property="og:url" content={canonical.href} />
-    <meta property="og:locale" content="en" />
+    <meta property="og:locale" content={lang === 'es' ? 'es_PR' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
 
     <meta name="geo.placename" content={formattedAddress} />
+    <meta name="geo.region" content="PR" />
 
     <script
       is:inline
@@ -75,12 +102,13 @@ const structuredData = {
     />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <Header />
+    <a class="skip-link" href="#main">{copy.skipToContent}</a>
+    <Header lang={lang} />
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    <Footer lang={lang} />
+    {showChooser && <LanguageChooser lang={lang} />}
   </body>
 </html>
 

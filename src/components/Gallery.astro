@@ -1,13 +1,22 @@
 ---
 import { gallery } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
 ---
 
 <section class="section section--inset" id="gallery">
   <div class="wrap">
     <div class="section__intro">
-      <p class="eyebrow">A look inside</p>
-      <h2>Gallery</h2>
-      <p>The room, the plates and the people who make them.</p>
+      <p class="eyebrow">{copy.galleryEyebrow}</p>
+      <h2>{copy.galleryTitle}</h2>
+      <p>{copy.galleryIntro}</p>
     </div>
 
     <ul class="gallery">
@@ -16,7 +25,7 @@ import { gallery } from '../data/restaurant';
           {/* The first two are likely above the fold on wide screens. */}
           <img
             src={photo.src}
-            alt={photo.alt}
+            alt={photo.alt[lang]}
             width="800"
             height="600"
             loading={index < 2 ? 'eager' : 'lazy'}

@@ -1,33 +1,48 @@
 ---
 import { restaurant, formattedAddress } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
 
 const year = new Date().getFullYear();
 const socials = [
-  { href: restaurant.social.facebook, label: 'Facebook' },
   { href: restaurant.social.instagram, label: 'Instagram' },
+  { href: restaurant.social.facebook, label: 'Facebook' },
 ].filter((social) => social.href);
 ---
 
 <footer class="footer">
   <div class="wrap footer__inner">
     <div>
-      <p class="footer__brand">{restaurant.name}</p>
+      <p class="footer__brand">{restaurant.fullName}</p>
       <p class="footer__line">{formattedAddress}</p>
+      <p class="footer__line">{restaurant.address.country}</p>
     </div>
 
     <div>
-      <p class="footer__line">
-        <a href={`tel:${restaurant.phone.replace(/\s+/g, '')}`}>
-          {restaurant.phone}
-        </a>
-      </p>
-      <p class="footer__line">
-        <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
-      </p>
+      <p class="footer__line footer__muted">{restaurant.tagline[lang]}</p>
+      {restaurant.phone && (
+        <p class="footer__line">
+          <a href={`tel:${restaurant.phone.replace(/[^\d+]/g, '')}`}>
+            {restaurant.phone}
+          </a>
+        </p>
+      )}
+      {restaurant.email && (
+        <p class="footer__line">
+          <a href={`mailto:${restaurant.email}`}>{restaurant.email}</a>
+        </p>
+      )}
     </div>
 
     {socials.length > 0 && (
-      <nav aria-label="Social media">
+      <nav aria-label={copy.socialLabel}>
         <ul class="footer__social">
           {socials.map((social) => (
             <li>
@@ -42,7 +57,9 @@ const socials = [
   </div>
 
   <div class="wrap">
-    <p class="footer__legal">© {year} {restaurant.name}. All rights reserved.</p>
+    <p class="footer__legal">
+      © {year} {restaurant.fullName}. {copy.footerRights}
+    </p>
   </div>
 </footer>
 
@@ -64,6 +81,7 @@ const socials = [
   .footer__brand {
     font-family: var(--font-display);
     font-size: 1.25rem;
+    letter-spacing: 0.04em;
     color: #fff;
     margin-bottom: 0.5rem;
   }
@@ -71,6 +89,10 @@ const socials = [
   .footer__line {
     margin: 0 0 0.35rem;
     font-size: 0.9375rem;
+  }
+
+  .footer__muted {
+    color: #9a9188;
   }
 
   .footer a {

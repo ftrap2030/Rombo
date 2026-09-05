@@ -1,10 +1,41 @@
-# Rombo — restaurant website
+# ROMBO Asador Playero — website
 
-A fast, static website for a small restaurant, built with [Astro](https://astro.build).
-Single page with menu, gallery, opening hours, map and a reservation request form.
+Bilingual (Spanish / English) static website for
+[ROMBO Asador Playero](https://www.instagram.com/romboasadorplayero/), a
+beachside grill and cocktail bar at 112A Calle 15, Dorado, Puerto Rico.
 
-> **Status: placeholder content.** Every detail on the site right now is made up.
-> See [Making it yours](#making-it-yours) to swap in the real restaurant.
+Built with [Astro](https://astro.build). Menu, gallery, opening hours, map and
+a reservation request form on one page per language.
+
+## Before this goes live
+
+Four things still need real values. Each one degrades gracefully until then —
+nothing is broken, and no invented information is published.
+
+| What | Where | Status |
+| ---- | ----- | ------ |
+| **Menu prices** | `menu` in `src/data/restaurant.ts` | Dish names are real; every `price` is empty, so no price renders. **No prices were invented.** |
+| **Phone number** | `restaurant.phone` | Empty. Two different numbers appear in online listings and neither was confirmed, so none is published. |
+| **Email** | `restaurant.email` | Empty, same reason. |
+| **Map** | `restaurant.mapEmbedUrl` | Empty — the map area shows a setup note. |
+| **Booking form** | `restaurant.reservationEndpoint` | Empty — the form renders disabled and points guests to Instagram. |
+| **Photos** | `public/images/gallery/` | Placeholder SVGs. |
+| **Public URL** | `site` in `astro.config.mjs` | Set to `https://example.com`; change it so canonical and social tags are right. |
+
+Set any of these and the corresponding UI switches on automatically — phone and
+email links appear in the header, Visit section and footer; the map replaces its
+note; the form enables itself.
+
+### What *is* real
+
+Taken from the Google Business listing and the verified Instagram profile:
+
+- Name, address (112A Calle 15, Dorado, PR 00646), price range ($20–60)
+- Opening hours: closed Mon–Wed; Thu & Fri 3–11 pm; Sat & Sun 1–11 pm; kitchen
+  closes 10 pm, bar 11 pm
+- Instagram and Facebook links
+- Dish names (ceviche de dorado, tacos al pastor, pork belly, chillo entero,
+  carne frita con tostones, …) — descriptions are written, prices are not
 
 ## Running it
 
@@ -15,73 +46,87 @@ npm install
 npm run dev      # http://localhost:4321
 ```
 
-| Command           | What it does                                     |
-| ----------------- | ------------------------------------------------ |
-| `npm run dev`     | Dev server with hot reload                        |
-| `npm run build`   | Typechecks, then builds the static site to `dist/` |
-| `npm run preview` | Serves the built `dist/` locally                  |
+| Command           | What it does                                       |
+| ----------------- | -------------------------------------------------- |
+| `npm run dev`     | Dev server with hot reload                          |
+| `npm run build`   | Typechecks, then builds the static site to `dist/`  |
+| `npm run preview` | Serves the built `dist/` locally                    |
 
-## Making it yours
+## How the two languages work
 
-Almost everything lives in one file: **`src/data/restaurant.ts`**. Edit it and
-the whole site updates — no other file needs to change.
+- **`/`** is Spanish (the default), **`/en/`** is English. Both render the same
+  `Page.astro`, so the two versions cannot drift apart structurally.
+- **On a first visit**, a dialog asks which language the visitor wants. It's
+  written in both languages so either speaker can read it. The choice is saved
+  to `localStorage` under `rombo:lang`.
+- **On later visits**, a small inline script redirects to the stored language
+  before the page paints, so there's no flash of the wrong language.
+- **The header has an ES/EN toggle** for changing language later. It updates the
+  stored preference too, so the redirect script doesn't bounce the visitor back.
+- If `localStorage` is unavailable (private mode, blocked storage), everything
+  still works — the visitor is just asked again next time.
+- `hreflang` tags advertise both versions to search engines.
 
-1. **Details** — name, tagline, intro, about text, address, phone, email and
-   social links in the `restaurant` object.
-2. **Opening hours** — the `openingHours` array. Use 24-hour `"HH:MM"` strings;
-   set `opens` and `closes` to `null` for a closed day. For a split service, add
-   a `note` like `"12:00 – 15:00, 19:00 – 23:00"` and it overrides the display
-   text. Today's row is highlighted automatically.
-3. **Menu** — the `menu` array of sections, each with items. `price` is a
-   display string, so `"$12"`, `"12 €"` and `"Market price"` all work. Optional
-   `tags` render as small badges (`"Vegan"`, `"Gluten free"`, …).
-4. **Photos** — drop real images into `public/images/gallery/` and point the
-   `gallery` array at them. Landscape 4:3 at roughly 1200×900 works well. Write
-   a real `alt` description for each; it matters for screen readers and search.
-5. **Map** — in Google Maps, find the restaurant → **Share** → **Embed a map**,
-   copy the `src` value out of the `<iframe>` snippet, and paste it into
-   `mapEmbedUrl`. Also update `mapLinkUrl` for the "Get directions" button.
-   Until `mapEmbedUrl` is set, the map area shows a short setup note.
-6. **Reservations** — the form needs somewhere to send submissions. Create a
-   free form at [formspree.io](https://formspree.io) and paste the endpoint into
-   `reservationEndpoint`. Until then the form renders disabled with a note
-   telling guests to phone or email instead.
+### Editing content
 
-Two more things worth updating before launch:
+- **`src/data/restaurant.ts`** — everything about the restaurant: contact
+  details, hours, menu, gallery. Text that differs per language is written as
+  `{ es: '…', en: '…' }`.
+- **`src/i18n/ui.ts`** — interface copy: nav labels, headings, buttons, form
+  fields, error messages. The English object is typed against the Spanish one,
+  so a missing translation is a build error rather than a silent fallback.
 
-- `site` in `astro.config.mjs` — set it to the real public URL so canonical
-  links and social share tags are correct.
-- `public/favicon.svg` — currently a plain "R" monogram.
+To add a menu item, add an entry to the relevant section in `menu`:
 
-Colours, fonts and spacing are CSS custom properties at the top of
-`src/styles/global.css`.
+```ts
+{
+  name: 'Tacos de dorado',                       // dish name, same both languages
+  description: { es: 'Descripción…', en: 'Description…' },
+  price: '$18',                                  // empty string hides the price
+  tags: ['glutenFree'],                          // optional badges
+}
+```
+
+Tag keys are defined in `src/i18n/types.ts` and translated in `src/i18n/ui.ts`.
+
+For hours, use 24-hour `"HH:MM"` strings; both `opens` and `closes` set to
+`null` means closed that day. Today's row is highlighted automatically.
 
 ## How it's put together
 
 ```
 src/
-  data/restaurant.ts     all site content — start here
-  layouts/Layout.astro   <head>, SEO meta, schema.org markup, skip link
-  components/            Header, Hero, About, Menu, Gallery, Visit,
-                         Reservations, Footer
+  data/restaurant.ts     all restaurant content — start here
+  i18n/
+    types.ts             Locale, day and tag keys
+    ui.ts                interface copy in both languages
+    index.ts             helpers (time formatting, string lookup)
+  layouts/Layout.astro   <head>, SEO meta, hreflang, schema.org, skip link
+  components/
+    Page.astro           the homepage, rendered once per language
+    Header, Hero, About, Menu, Gallery, Visit, Reservations, Footer
+    LanguageChooser.astro   first-visit dialog + redirect script
   pages/
-    index.astro          the one page, composed from the components
-    404.astro            not-found page
+    index.astro          Spanish homepage  →  /
+    en/index.astro       English homepage  →  /en/
+    404.astro            not-found page, shown in both languages
   styles/global.css      design tokens, reset, shared utilities
 public/                  images, favicon, robots.txt — served as-is
 ```
 
 Notes on a few decisions:
 
-- **No JavaScript framework.** The page ships two tiny scripts (mobile nav,
-  form submit) and nothing else.
+- **No JavaScript framework.** The page ships three small scripts (language
+  redirect, mobile nav, form submit) and nothing else.
 - **schema.org `Restaurant` markup** is generated from the same data, so Google
-  can show hours, address and phone directly in search results.
+  can show hours, address and price range directly in search results.
 - **The reservation form works without JavaScript.** It's a normal `POST` form;
   the script only upgrades it to submit in place with an inline confirmation.
-  A hidden honeypot field catches basic spam bots.
+  A hidden honeypot field catches basic spam bots, and a hidden `lang` field
+  records which language the guest was browsing in.
 - **Accessibility**: skip link, visible focus rings, labelled form fields, a
-  real `<table>` for hours, and `prefers-reduced-motion` respected.
+  real `<table>` for hours, `lang` attributes on switched-language text, and
+  `prefers-reduced-motion` respected.
 
 ## Deploying
 

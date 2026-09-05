@@ -1,25 +1,31 @@
 ---
 import { menu } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t, tagNames } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
+const tags = tagNames[lang];
 ---
 
 <section class="section" id="menu">
   <div class="wrap">
     <div class="section__intro">
-      <p class="eyebrow">What we're cooking</p>
-      <h2>Menu</h2>
-      <p>
-        The menu shifts with the seasons, so a dish or two may change between
-        your visit and this page. Tell us about allergies when you order and
-        we'll work around them.
-      </p>
+      <p class="eyebrow">{copy.menuEyebrow}</p>
+      <h2>{copy.menuTitle}</h2>
+      <p>{copy.menuIntro}</p>
     </div>
 
     <div class="menu">
       {menu.map((section) => (
         <section class="menu__section">
-          <h3 class="menu__heading">{section.title}</h3>
+          <h3 class="menu__heading">{section.title[lang]}</h3>
           {section.description && (
-            <p class="menu__blurb">{section.description}</p>
+            <p class="menu__blurb">{section.description[lang]}</p>
           )}
 
           <ul class="menu__list">
@@ -27,14 +33,19 @@ import { menu } from '../data/restaurant';
               <li class="item">
                 <div class="item__head">
                   <h4 class="item__name">{item.name}</h4>
-                  <span class="item__dots" aria-hidden="true"></span>
-                  <span class="item__price">{item.price}</span>
+                  {/* The dotted leader and price only appear once a price is set. */}
+                  {item.price && (
+                    <>
+                      <span class="item__dots" aria-hidden="true"></span>
+                      <span class="item__price">{item.price}</span>
+                    </>
+                  )}
                 </div>
-                <p class="item__description">{item.description}</p>
+                <p class="item__description">{item.description[lang]}</p>
                 {item.tags && item.tags.length > 0 && (
                   <ul class="item__tags">
                     {item.tags.map((tag) => (
-                      <li class="tag">{tag}</li>
+                      <li class="tag">{tags[tag]}</li>
                     ))}
                   </ul>
                 )}

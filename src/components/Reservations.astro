@@ -1,31 +1,34 @@
 ---
 import { restaurant } from '../data/restaurant';
+import type { Locale } from '../i18n';
+import { t } from '../i18n';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const copy = t(lang);
 
 const isConfigured = Boolean(restaurant.reservationEndpoint);
-const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
 ---
 
 <section class="section section--inset" id="reservations">
   <div class="wrap reservations">
     <div class="section__intro">
-      <p class="eyebrow">Reservations</p>
-      <h2>Book a table</h2>
+      <p class="eyebrow">{copy.bookEyebrow}</p>
+      <h2>{copy.bookTitle}</h2>
       <p>
-        Send us a request and we'll confirm by email or phone. For same-day
-        bookings or parties over six, please call us on{' '}
-        <a href={phoneHref}>{restaurant.phone}</a>.
+        {copy.bookIntro}{' '}
+        <a href={restaurant.social.instagram} rel="noopener noreferrer" target="_blank">
+          @romboasadorplayero
+        </a>
       </p>
     </div>
 
     {!isConfigured && (
       <p class="notice">
-        <strong>The form isn't connected yet.</strong> Create a free form at{' '}
-        <a href="https://formspree.io" rel="noopener noreferrer" target="_blank">
-          formspree.io
-        </a>{' '}
-        and paste the endpoint into <code>reservationEndpoint</code> in{' '}
-        <code>src/data/restaurant.ts</code>. Until then, guests can book by
-        phone or email.
+        <strong>{copy.bookNotConfiguredTitle}</strong> {copy.bookNotConfiguredBody}
       </p>
     )}
 
@@ -36,9 +39,12 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
       data-reservation-form
       novalidate
     >
+      {/* Tells the inbox which language the guest was browsing in. */}
+      <input type="hidden" name="lang" value={lang} />
+
       <div class="form__grid">
         <div class="field">
-          <label for="res-name">Name</label>
+          <label for="res-name">{copy.fieldName}</label>
           <input
             id="res-name"
             name="name"
@@ -50,7 +56,7 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
         </div>
 
         <div class="field">
-          <label for="res-email">Email</label>
+          <label for="res-email">{copy.fieldEmail}</label>
           <input
             id="res-email"
             name="email"
@@ -62,7 +68,9 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
         </div>
 
         <div class="field">
-          <label for="res-phone">Phone <span class="field__hint">(optional)</span></label>
+          <label for="res-phone">
+            {copy.fieldPhone} <span class="field__hint">{copy.fieldOptional}</span>
+          </label>
           <input
             id="res-phone"
             name="phone"
@@ -73,16 +81,18 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
         </div>
 
         <div class="field">
-          <label for="res-guests">Guests</label>
+          <label for="res-guests">{copy.fieldGuests}</label>
           <select id="res-guests" name="guests" required disabled={!isConfigured}>
             {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => (
-              <option value={String(n)}>{n === 8 ? '8 or more' : n}</option>
+              <option value={String(n)}>
+                {n === 8 ? copy.fieldGuestsMax : n}
+              </option>
             ))}
           </select>
         </div>
 
         <div class="field">
-          <label for="res-date">Date</label>
+          <label for="res-date">{copy.fieldDate}</label>
           <input
             id="res-date"
             name="date"
@@ -94,7 +104,7 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
         </div>
 
         <div class="field">
-          <label for="res-time">Time</label>
+          <label for="res-time">{copy.fieldTime}</label>
           <input
             id="res-time"
             name="time"
@@ -107,25 +117,25 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
 
       <div class="field">
         <label for="res-notes">
-          Anything we should know? <span class="field__hint">(optional)</span>
+          {copy.fieldNotes} <span class="field__hint">{copy.fieldOptional}</span>
         </label>
         <textarea
           id="res-notes"
           name="notes"
           rows="3"
-          placeholder="Allergies, high chair, celebrating something…"
+          placeholder={copy.fieldNotesPlaceholder}
           disabled={!isConfigured}
         ></textarea>
       </div>
 
       {/* Honeypot: hidden from people, irresistible to bots. */}
       <div class="honeypot" aria-hidden="true">
-        <label for="res-company">Company</label>
+        <label for="res-company">{copy.fieldCompany}</label>
         <input id="res-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
       </div>
 
       <button class="button" type="submit" disabled={!isConfigured}>
-        Request a table
+        {copy.bookSubmit}
       </button>
 
       <p class="form__status" data-form-status role="status" aria-live="polite"></p>
@@ -133,20 +143,28 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
   </div>
 </section>
 
-<script>
-  const form = document.querySelector<HTMLFormElement>('[data-reservation-form]');
-  const status = document.querySelector<HTMLParagraphElement>('[data-form-status]');
+<script
+  is:inline
+  define:vars={{
+    sendingText: copy.bookSending,
+    successText: copy.bookSuccess,
+    serverErrorText: copy.bookErrorServer,
+    networkErrorText: copy.bookErrorNetwork,
+  }}
+>
+  const form = document.querySelector('[data-reservation-form]');
+  const status = document.querySelector('[data-form-status]');
 
   // Stop guests picking a date in the past. Done client-side so the value is
   // right for the visitor's timezone, not the build machine's.
-  const dateInput = document.querySelector<HTMLInputElement>('[data-min-today]');
+  const dateInput = document.querySelector('[data-min-today]');
   if (dateInput) {
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
     dateInput.min = local.toISOString().slice(0, 10);
   }
 
-  function setStatus(message: string, kind: 'success' | 'error' | '') {
+  function setStatus(message, kind) {
     if (!status) return;
     status.textContent = message;
     status.className = kind ? `form__status form__status--${kind}` : 'form__status';
@@ -160,13 +178,13 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
         return;
       }
 
-      // Only take over the submit once we know we can handle it; if the fetch
-      // path throws, the form still has a working native action to fall back on.
+      // Only take over the submit once we know we can handle it; if this path
+      // throws, the form still has a working native action to fall back on.
       event.preventDefault();
 
-      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const submitButton = form.querySelector('button[type="submit"]');
       if (submitButton) submitButton.disabled = true;
-      setStatus('Sending your request…', '');
+      setStatus(sendingText, '');
 
       try {
         const response = await fetch(form.action, {
@@ -177,21 +195,12 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
 
         if (response.ok) {
           form.reset();
-          setStatus(
-            'Thank you — your request is in. We’ll confirm shortly.',
-            'success',
-          );
+          setStatus(successText, 'success');
         } else {
-          setStatus(
-            'Something went wrong sending that. Please call us instead.',
-            'error',
-          );
+          setStatus(serverErrorText, 'error');
         }
       } catch {
-        setStatus(
-          'We couldn’t reach the booking service. Please call us instead.',
-          'error',
-        );
+        setStatus(networkErrorText, 'error');
       } finally {
         if (submitButton) submitButton.disabled = false;
       }
@@ -213,13 +222,6 @@ const phoneHref = `tel:${restaurant.phone.replace(/\s+/g, '')}`;
     font-size: 0.9375rem;
     color: var(--ink-muted);
     margin-bottom: 2rem;
-  }
-
-  .notice code {
-    background: var(--bg-inset);
-    border-radius: 3px;
-    padding: 0.05rem 0.3rem;
-    font-size: 0.9em;
   }
 
   .form__grid {
