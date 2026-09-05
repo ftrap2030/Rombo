@@ -34,6 +34,8 @@ note; the form enables itself.
   marked `***` on the printed menu carry `subjectToAvailability`, footnoted at
   the bottom of the section alongside the raw-protein notice.
 - Name, address (112A Calle 15, Dorado, PR 00646), price range ($20–60)
+- The Google rating (4.7 from 371 reviews) and the listing's attributes
+  (outdoor seating, great cocktails, live music), shown in a strip under the hero
 - Opening hours: closed Mon–Wed; Thu & Fri 3–11 pm; Sat & Sun 1–11 pm; kitchen
   closes 10 pm, bar 11 pm
 - Instagram and Facebook links
@@ -106,6 +108,18 @@ vegetarian, gluten-free and similar.
 
 For hours, use 24-hour `"HH:MM"` strings; both `opens` and `closes` set to
 `null` means closed that day. Today's row is highlighted automatically.
+
+### Keeping the Google rating current
+
+`googleRating` in `src/data/restaurant.ts` is a **snapshot** — a static site
+can't read Google's API — so it drifts as new reviews come in. Update `value`,
+`count` and `checked` together every few months, or set `googleRating` to `null`
+to hide the strip.
+
+The rating is shown visually with attribution and a link, but is deliberately
+**not** emitted as schema.org `aggregateRating`. Google's structured-data
+guidelines expect ratings marked up on your site to have been collected by your
+site; marking up a third-party score can earn a manual action. Don't add it.
 
 ## How it's put together
 
