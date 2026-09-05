@@ -139,6 +139,36 @@ export const openingHours: OpeningHours[] = [
   { day: 'sunday', opens: '13:00', closes: '23:00' },
 ];
 
+/**
+ * The Google Business rating, shown under the hero.
+ *
+ * This is a snapshot, not a live figure — a static site cannot read Google's
+ * API — so `checked` records when it was last confirmed. Update all three
+ * values together every few months, or set `googleRating` to `null` to hide
+ * the block entirely.
+ *
+ * Deliberately NOT emitted as schema.org `aggregateRating`: Google's
+ * structured-data guidelines expect ratings marked up on your own site to be
+ * collected by your own site, and marking up a third-party score can earn a
+ * manual action. Displaying it visually with attribution and a link is fine.
+ */
+export const googleRating = {
+  value: '4.7',
+  count: 371,
+  checked: '2026-09',
+  url: restaurant.mapLinkUrl,
+};
+
+/**
+ * Attributes shown on the Google listing. These are stable descriptions of the
+ * place rather than a live feed, so they only change when the venue does.
+ */
+export const amenities: Translated[] = [
+  { es: 'Área exterior', en: 'Outdoor seating' },
+  { es: 'Coctelería destacada', en: 'Great cocktails' },
+  { es: 'Música en vivo', en: 'Live music' },
+];
+
 /** Shown under the hours table. */
 export const hoursNote: Translated = {
   es: 'La cocina cierra a las 10:00 pm. La barra sigue hasta las 11:00 pm.',

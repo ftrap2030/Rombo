@@ -6,6 +6,7 @@
  */
 import Layout from '../layouts/Layout.astro';
 import Hero from './Hero.astro';
+import Highlights from './Highlights.astro';
 import About from './About.astro';
 import Menu from './Menu.astro';
 import Gallery from './Gallery.astro';
@@ -22,6 +23,7 @@ const { lang } = Astro.props;
 
 <Layout lang={lang}>
   <Hero lang={lang} />
+  <Highlights lang={lang} />
   <About lang={lang} />
   <Menu lang={lang} />
   <Gallery lang={lang} />

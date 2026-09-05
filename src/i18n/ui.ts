@@ -30,6 +30,10 @@ const es = {
   heroBook: 'Reservar mesa',
   heroMenu: 'Ver el menú',
 
+  ratingOnGoogle: 'reseñas en Google',
+  ratingLabel: 'Valoración en Google',
+  ratingOutOfFive: 'de 5 estrellas',
+
   aboutEyebrow: 'Nuestra historia',
   aboutTitle: 'Sobre ROMBO',
 
@@ -130,6 +134,10 @@ const en: Ui = {
 
   heroBook: 'Book a table',
   heroMenu: 'See the menu',
+
+  ratingOnGoogle: 'reviews on Google',
+  ratingLabel: 'Google rating',
+  ratingOutOfFive: 'out of 5 stars',
 
   aboutEyebrow: 'Our story',
   aboutTitle: 'About ROMBO',
