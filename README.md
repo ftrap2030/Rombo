@@ -39,8 +39,14 @@ note; the form enables itself.
 - Instagram and Facebook links
 
 The accent colour (`--accent` in `src/styles/global.css`) is set to the red of
-the ROMBO wordmark. The logo itself is not in the repo — the header uses styled
-text. Drop a real logo file into `public/` if you'd rather use the mark.
+the ROMBO wordmark.
+
+**The header logo** (`public/images/logo.png`) was lifted from the printed menu
+and keyed onto a transparent background, so it is only 211×91. It is displayed
+at 105px wide, which keeps it crisp on high-density screens, and the hero
+wordmark is set as text rather than upscaling it. **Replace it with the original
+logo file** (SVG ideally, or a large PNG) when you have one — same path, same
+filename, and update `width`/`height` on the `<img>` in `Header.astro`.
 
 ## Running it
 

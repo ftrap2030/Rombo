@@ -24,7 +24,18 @@ const home = localeHome(lang);
 <header class="header">
   <div class="wrap header__inner">
     <a class="header__brand" href={home}>
-      {restaurant.name}
+      {/*
+        Lifted from the printed menu, so it is only ~211px wide. It is used at
+        about half that, which keeps it sharp on high-density screens; the hero
+        wordmark stays as text because upscaling this would show.
+      */}
+      <img
+        class="header__logo"
+        src="/images/logo.png"
+        alt={restaurant.fullName}
+        width="211"
+        height="91"
+      />
       <span class="header__tagline">{restaurant.tagline[lang]}</span>
     </a>
 
@@ -120,13 +131,13 @@ const home = localeHome(lang);
   .header__brand {
     display: flex;
     flex-direction: column;
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: 0.06em;
     color: var(--ink);
     text-decoration: none;
+  }
+
+  .header__logo {
+    width: 105px;
+    height: auto;
   }
 
   .header__tagline {
